@@ -1,1 +1,3 @@
-Utilizar los archivos de datos que se encuentran en Sicuaplus
+Req2: Hugo David Flórez Rodríguez, 201912429, hd.florez@uniandes.edu.co
+Req3: Alejandro Herrera Jiménez - 201915788, a.herrera20@uniandes.edu.co  
+ 
