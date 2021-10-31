@@ -23,16 +23,88 @@
 import config as cf
 import model
 import csv
+import datetime
 
 
 """
 El controlador se encarga de mediar entre la vista y el modelo.
 """
 
-# Inicialización del Catálogo de libros
+# ___________________________________________________
+#  Inicializacion del catalogo
+# ___________________________________________________
 
-# Funciones para la carga de datos
+
+def init():
+    """
+    Llama la funcion de inicializacion  del modelo.
+    """
+    # catalog es utilizado para interactuar con el modelo
+    analyzer = model.newAnalyzer()
+    return analyzer
+
+# ___________________________________________________
+#  Funciones para la carga de datos y almacenamiento
+#  de datos en los modelos
+# ___________________________________________________
+
+def loadData(analyzer, UFOSfile):
+    """
+    Carga los datos de los archivos CSV en el modelo
+    """
+    UFOSfile = cf.data_dir + UFOSfile
+    input_file = csv.DictReader(open(UFOSfile, encoding="utf-8"),
+                                delimiter=",")
+    for avistamiento in input_file:
+        model.addAvistamiento(analyzer, avistamiento)
+    return analyzer
 
 # Funciones de ordenamiento
 
-# Funciones de consulta sobre el catálogo
+# ___________________________________________________
+#  Funciones para consultas
+# ___________________________________________________
+
+
+def avistamientosSize(analyzer):
+    """
+    Numero de crimenes leidos
+    """
+    return model.avistamientosSize(analyzer)
+
+
+def indexHeight(analyzer):
+    """
+    Altura del indice (arbol)
+    """
+    return model.indexHeight(analyzer)
+
+
+def indexSize(analyzer):
+    """
+    Numero de nodos en el arbol
+    """
+    return model.indexSize(analyzer)
+
+
+def minKey(analyzer):
+    """
+    La menor llave del arbol
+    """
+    return model.minKey(analyzer)
+
+
+def maxKey(analyzer):
+    """
+    La mayor llave del arbol
+    """
+    return model.maxKey(analyzer)
+
+def getAvistamientosByRange(analyzer, initialDate, finalDate):
+    """
+    Retorna el total de crimenes en un rango de fechas
+    """
+    initialDate = datetime.datetime.strptime(initialDate, '%Y-%m-%d')
+    finalDate = datetime.datetime.strptime(finalDate, '%Y-%m-%d')
+    return model.getAvistamientosByRange(analyzer, initialDate.date(),
+                                  finalDate.date())
