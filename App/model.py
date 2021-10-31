@@ -223,9 +223,9 @@ def comparedates(date1, date2):
     """
     Compara dos crimenes
     """
-    if (datetime.datetime.stripdate(date1,'%Y-%m-%d') == datetime.datetime.stripdate(date2,'%Y-%m-%d')):
+    if (datetime.datetime.striptime(date1,'%Y-%m-%d') == datetime.datetime.striptime(date2,'%Y-%m-%d')):
         return 0
-    elif (datetime.datetime.stripdate(date1,'%Y-%m-%d') > datetime.datetime.stripdate(date2,'%Y-%m-%d')):
+    elif (datetime.datetime.striptime(date1,'%Y-%m-%d') > datetime.datetime.striptime(date2,'%Y-%m-%d')):
         return 1
     else:
         return -1
