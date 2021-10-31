@@ -89,7 +89,7 @@ def updateDuracionSeg(map, avistamiento):
     duration = avistamiento['duration (seconds)']
     entry = om.get(map, duration)
     if entry is None:
-        datentry = newDataEntry(avistamiento)
+        datentry = newDurationEntry(avistamiento)
         om.put(map, duration, datentry)
     else:
         datentry = me.getValue(entry)
@@ -135,6 +135,7 @@ def addCityIndex(datentry, avistamiento):
         entry = me.getValue(offentry)
         lt.addLast(entry['lstoffenses'], avistamiento)
     return datentry
+    
 
 
 def newDataEntry(avistamiento):
@@ -147,6 +148,18 @@ def newDataEntry(avistamiento):
                                      maptype='PROBING',
                                      comparefunction=comparedates)
     entry['lstavistamientos'] = lt.newList('SINGLE_LINKED', comparedates)
+    return entry
+
+def newDurationEntry(avistamiento):
+    """
+    Crea una entrada en el indice por fechas, es decir en el arbol
+    binario.
+    """
+    entry = {'Date': None, 'lstavistamientos': None}
+    entry['Date'] = m.newMap(numelements=30,
+                                     maptype='PROBING',
+                                     comparefunction=compareobjets)
+    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED', compareobjets)
     return entry
 
 def newCityEntry(ciudad, avistamiento):
@@ -168,7 +181,7 @@ def newCityEntry(ciudad, avistamiento):
 
 def avistamientosSize(analyzer):
     """
-    Número de crimenes
+    Número de avistamientos
     """
     return lt.size(analyzer['avistamientos'])
 
@@ -202,13 +215,25 @@ def maxKey(analyzer):
 
 def getAvistamientosByRange(analyzer, initialDate, finalDate):
     """
-    Retorna el numero de avistamientos en un rago de fechas.
+    Retorna el numero de avistamientos en un rango de fechas.
     """
     lst = om.values(analyzer['fecha'], initialDate, finalDate)
     totcrimes = 0
     for lstdate in lt.iterator(lst):
         totcrimes += lt.size(lstdate['lstavistamientos'])
     return totcrimes
+
+def getAvistamientosByDurationRange(analyzer, min, max):
+    """
+    Retorna el numero de avistamientos en un rango.
+    """
+    lst = om.values(analyzer['duracion en seg'], min, max)
+    print(analyzer['duracion en seg']) 
+    tot = 0
+    for lstdate in lt.iterator(lst):
+        tot += lt.size(lstdate['lstavistamientos'])
+    return tot
+
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
