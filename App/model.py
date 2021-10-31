@@ -49,16 +49,22 @@ def newAnalyzer():
     Crea una lista vacia para guardar todos los crimenes
     Se crean indices (Maps) por los siguientes criterios:
     -Fechas
+    -Duración en segundos
 
     Retorna el analizador inicializado.
     """
     analyzer = {'avistamientos': None,
-                'fecha': None
+                'fecha': None,
+                'duracion en seg': None
                 }
 
     analyzer['avistamientos'] = lt.newList('SINGLE_LINKED', comparedates)
     analyzer['fecha'] = om.newMap(omaptype='RBT',
-                                      comparefunction=comparecities)
+                                      comparefunction=compareobjets)
+    analyzer['duracion en seg']= om.newMap(omaptype='RBT',
+                                      comparefunction=compareobjets)
+    
+    
     return analyzer
 
 # Funciones para agregar informacion al catalogo
@@ -68,7 +74,26 @@ def addAvistamiento(analyzer, avistamiento):
     """
     lt.addLast(analyzer['avistamientos'], avistamiento)
     updateDate(analyzer['fecha'], avistamiento)
+    updateDuracionSeg(analyzer['duracion en seg'], avistamiento)
     return analyzer
+
+def updateDuracionSeg(map, avistamiento):
+    """
+    Se toma la duración en segundos del avistamiento y se busca si ya existe en el arbol
+    dicha duración.  Si es asi, se adiciona a su lista de avistamientos
+    y se actualiza el indice de tipos de crimenes.
+
+    Si no se encuentra creado un nodo para esa duración en el arbol
+    se crea y se actualiza el indice de ciudades
+    """
+    duration = avistamiento['duration (seconds)']
+    entry = om.get(map, duration)
+    if entry is None:
+        datentry = newDataEntry(avistamiento)
+        om.put(map, duration, datentry)
+    else:
+        datentry = me.getValue(entry)
+    return map
 
 def updateDate(map, avistamiento):
     """
@@ -131,7 +156,7 @@ def newCityEntry(ciudad, avistamiento):
     """
     ofentry = {'city': None, 'lstcities': None}
     ofentry['city'] = ciudad
-    ofentry['lstcities'] = lt.newList('SINGLELINKED', comparecities)
+    ofentry['lstcities'] = lt.newList('SINGLELINKED', compareobjets)
     return ofentry
 
 # Funciones para creacion de datos
@@ -205,13 +230,13 @@ def comparedates(date1, date2):
     else:
         return -1
 
-def comparecities(city1, city2):
+def compareobjets(objet1, objet2):
     """
-    Compara dos crimenes
+    Compara dos objetos
     """
-    if (city1 == city2):
+    if (objet1 == objet2):
         return 0
-    elif city1 > city2:
+    elif objet1 > objet2:
         return 1
     else:
         return -1
