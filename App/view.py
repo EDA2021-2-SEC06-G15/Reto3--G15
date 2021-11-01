@@ -91,7 +91,11 @@ while True:
         print("\nTotal de avistamientos en el rango de fechas: " + str(total))
 
     elif int(inputs[0]) == 4:
-        pass
+        print("\nBuscando avistamientos en un rango de duraciones: ")
+        min = input("Límite inferior en segundos: ")
+        max = input("Límite superior en segundos: ")
+        total = controller.getAvistamientosByDurationRange(cont, min, max)
+        print("\nTotal de avistamientos en el rango dado: " + str(total))
 
     elif int(inputs[0]) == 5:
         pass

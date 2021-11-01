@@ -108,3 +108,10 @@ def getAvistamientosByRange(analyzer, initialDate, finalDate):
     finalDate = datetime.datetime.strptime(finalDate, '%Y-%m-%d')
     return model.getAvistamientosByRange(analyzer, initialDate.date(),
                                   finalDate.date())
+
+def getAvistamientosByDurationRange(analyzer, min, max):
+    """
+    Retorna el total de avistamientos en un rango de duraciones
+    """
+    return model.getAvistamientosByDurationRange(analyzer, min,
+                                  max)
