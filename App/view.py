@@ -84,12 +84,16 @@ while True:
         print('Mayor Llave: ' + str(controller.maxKey(cont)))
 
     elif int(inputs[0]) == 3:
-        print("\nBuscando avistamientos en un rango de fechas: ")
-        initialDate = input("Fecha Inicial (YYYY-MM-DD): ")
-        finalDate = input("Fecha Final (YYYY-MM-DD): ")
-        total = controller.getAvistamientosByRange(cont, initialDate, finalDate)
-        print("\nTotal de avistamientos en el rango de fechas: " + str(total))
+        city = input("Ingrese la ciudad: ")
+        print("\nBuscando avistamientos en la ciudad de: " + str(city))
+        cities = controller.cityHeight(cont)
+        print("\nTotal de ciudades con avisamientos " + str(cities))
+        controller.get5bestcities(cont)
+        controller.getAvistamientosByCity(cont, city)
+        
 
+              
+        
     elif int(inputs[0]) == 4:
         pass
 
@@ -97,7 +101,11 @@ while True:
         pass
     
     elif int(inputs[0]) == 6:
-        pass
+        print("\nBuscando avistamientos en un rango de fechas: ")
+        initialDate = input("Fecha Inicial (YYYY-MM-DD): ")
+        finalDate = input("Fecha Final (YYYY-MM-DD): ")
+        total = controller.getAvistamientosByRange(cont, initialDate, finalDate)
+        print("\nTotal de avistamientos en el rango de fechas: " + str(total))
     
     elif int(inputs[0]) == 7:
         pass

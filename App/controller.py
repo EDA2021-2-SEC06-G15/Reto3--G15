@@ -24,6 +24,7 @@ import config as cf
 import model
 import csv
 import datetime
+from DISClib.ADT import list as lt
 
 
 """
@@ -79,6 +80,12 @@ def indexHeight(analyzer):
     """
     return model.indexHeight(analyzer)
 
+def cityHeight(analyzer):
+    """
+    Altura del arbol de fechas
+    """
+    return model.cityHeight(analyzer)
+
 
 def indexSize(analyzer):
     """
@@ -102,9 +109,21 @@ def maxKey(analyzer):
 
 def getAvistamientosByRange(analyzer, initialDate, finalDate):
     """
-    Retorna el total de crimenes en un rango de fechas
+    Retorna el total de avistamientos en un rango de fechas
     """
     initialDate = datetime.datetime.strptime(initialDate, '%Y-%m-%d')
     finalDate = datetime.datetime.strptime(finalDate, '%Y-%m-%d')
     return model.getAvistamientosByRange(analyzer, initialDate.date(),
                                   finalDate.date())
+
+def getAvistamientosByCity(analyzer, city):
+    """
+    Retorna el total de ciudades con avistamientos
+    """
+    return model.getAvistamientosByCity(analyzer, city)
+
+def get5bestcities(analyzer):
+    """
+    Retorna las 5 ciudades con más avistamientos
+    """
+    return model.get5bestcities(analyzer)
