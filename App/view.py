@@ -25,6 +25,8 @@ import sys
 import controller
 from DISClib.ADT import list as lt
 assert cf
+import time
+
 
 
 """
@@ -40,6 +42,8 @@ operación solicitada
 
 UFOSfile = 'UFOS//UFOS-utf8-small.csv'
 cont = None
+
+
 
 # ___________________________________________________
 #  Menu principal
@@ -75,6 +79,7 @@ while True:
         cont = controller.init()
 
     elif int(inputs[0]) == 2:
+        start_time = time.process_time()
         print("\nCargando información de los avistamientos ....")
         controller.loadData(cont, UFOSfile)
         print('avistamientos cargados: ' + str(controller.avistamientosSize(cont)))
@@ -83,19 +88,33 @@ while True:
         print('Menor Llave: ' + str(controller.minKey(cont)))
         print('Mayor Llave: ' + str(controller.maxKey(cont)))
 
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)  
+        print("Tiempo de ejecución: "+str(elapsed_time_mseg))
+
     elif int(inputs[0]) == 3:
         city = input("Ingrese la ciudad: ")
         print("\nBuscando avistamientos en la ciudad de: " + str(city))
-        cities = controller.cityHeight(cont)
+        cities = controller.citySize(cont)
         print("\nTotal de ciudades con avisamientos " + str(cities))
+        print("------------------------------")
+        print("\nTop 5 ciudades con más avistamientos: " )
         controller.get5bestcities(cont)
         controller.getAvistamientosByCity(cont, city)
         
-
-              
         
     elif int(inputs[0]) == 4:
-        pass
+        min = input("Ingrese el limite inferior de segundos: ")
+        max = input("Ingrese el limite superior de segundos: ")
+        duraciones = controller.durationSize(cont)
+        print("\nTotal de diferentes duraciones de avisamientos " + str(duraciones))
+        controller.get5bestdurations(cont)
+        total = controller.getAvistamientosByDuration(cont, min, max)
+        print("\nTotal de avistamientos en el rango de tiempos: " + str(total))
+
+
+
+        
 
     elif int(inputs[0]) == 5:
         pass

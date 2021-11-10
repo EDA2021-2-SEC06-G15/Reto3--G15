@@ -26,6 +26,7 @@
 
 
 
+from DISClib.DataStructures.arraylist import compareElements
 import config
 from DISClib.ADT import list as lt
 from DISClib.ADT import orderedmap as om
@@ -55,14 +56,14 @@ def newAnalyzer():
     """
     analyzer = {'avistamientos': None,
                 'fecha': None,
-                'ciudad': None
+                'ciudad': None,
+                'duracion': None
                 }
 
-    analyzer['avistamientos'] = lt.newList('SINGLE_LINKED', comparedates)
-    analyzer['fecha'] = om.newMap(omaptype='BST',
-                                      comparefunction=comparedates)
-    analyzer['ciudad'] = om.newMap(omaptype='BST',
-                                      comparefunction=comparecities)                                  
+    analyzer['avistamientos'] = lt.newList('SINGLE_LINKED', compareElements)
+    analyzer['fecha'] = om.newMap(omaptype='BST')
+    analyzer['ciudad'] = om.newMap(omaptype='BST') 
+    analyzer['duracion'] = om.newMap(omaptype='BST')                                  
     return analyzer
 
 # Funciones para agregar informacion al catalogo
@@ -73,6 +74,7 @@ def addAvistamiento(analyzer, avistamiento):
     lt.addLast(analyzer['avistamientos'], avistamiento)
     updateDate(analyzer['fecha'], avistamiento)
     updateCity(analyzer['ciudad'], avistamiento)
+    updateDuracion(analyzer['duracion'], avistamiento)
     return analyzer
 
 def updateDate(map, avistamiento):
@@ -115,6 +117,25 @@ def updateCity(map, avistamiento):
     addTimeIndex(cityentry, avistamiento)
     return map
 
+def updateDuracion(map, avistamiento):
+    """
+    Se toma la duración del avistamiento y se busca si ya existe en el arbol
+    dicha duración.  Si es asi, se adiciona a su lista de avistamientos
+    y se actualiza el indice de ciudad.
+
+    Si no se encuentra creado un nodo para esa duración en el arbol
+    se crea y se actualiza el indice de ciudad de avistamiento
+    """
+    occurredcity = avistamiento['duration (seconds)']
+    entry = om.get(map, occurredcity)
+    if entry is None:
+        durationentry = newDurationEntry(avistamiento)
+        om.put(map, occurredcity, durationentry)
+    else:
+        durationentry = me.getValue(entry)
+    addCountryIndex(durationentry, avistamiento)
+    return map
+
 def addCityIndex(datentry, avistamiento):
     """
     Actualiza un indice de ciudad.  Este indice tiene una lista
@@ -155,6 +176,46 @@ def addTimeIndex(datentry, avistamiento):
         lt.addLast(entry['lsttimes'], avistamiento)
     return datentry
 
+def addCountryIndex(datentry, avistamiento):
+    """
+    Actualiza un indice de duración.  Este indice tiene una lista
+    de avistamientos y una tabla de hash cuya llave es la duración del avistamiento y
+    el valor es una lista con los avistamientos de dicha ciudad en el país que
+    se está consultando (dada por el nodo del arbol)
+    """
+    lst = datentry['lstavistamientos']
+    lt.addLast(lst, avistamiento)
+    DateIndex = datentry['duration']
+    offentry = m.get(DateIndex, avistamiento['duration (seconds)'])
+    if (offentry is None):
+        entry = newCountryEntry(avistamiento['duration (seconds)'], avistamiento)
+        lt.addLast(entry['lstcountries'], avistamiento)
+        m.put(DateIndex, avistamiento['duration (seconds)'], entry)
+    else:
+        entry = me.getValue(offentry)
+        lt.addLast(entry['lstcountries'], avistamiento)
+    return datentry
+
+def addTimeIndex(datentry, avistamiento):
+    """
+    Actualiza un indice de tiempo de avistamiento.  Este indice tiene una lista
+    de avistamientos y una tabla de hash cuya llave es el tiempo de avistamiento y
+    el valor es una lista con los avistamientos de dicho tiempo en la ciudad que
+    se está consultando (dada por el nodo del arbol)
+    """
+    lst = datentry['lstavistamientos']
+    lt.addLast(lst, avistamiento)
+    CityIndex = datentry['time']
+    offentry = m.get(CityIndex, avistamiento['city'])
+    if (offentry is None):
+        entry = newTimeEntry(avistamiento['city'], avistamiento)
+        lt.addLast(entry['lsttimes'], avistamiento)
+        m.put(CityIndex, avistamiento['city'], entry)
+    else:
+        entry = me.getValue(offentry)
+        lt.addLast(entry['lsttimes'], avistamiento)
+    return datentry
+
 
 def newDataEntry(avistamiento):
     """
@@ -163,9 +224,8 @@ def newDataEntry(avistamiento):
     """
     entry = {'city': None, 'lstavistamientos': None}
     entry['city'] = m.newMap(numelements=30,
-                                     maptype='PROBING',
-                                     comparefunction=comparecities)
-    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED', comparedates)
+                                     maptype='PROBING')
+    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
     return entry
 
 def newCityEntry(avistamiento):
@@ -175,9 +235,8 @@ def newCityEntry(avistamiento):
     """
     entry = {'time': None, 'lstavistamientos': None}
     entry['time'] = m.newMap(numelements=30,
-                                     maptype='PROBING',
-                                     comparefunction=comparedates)
-    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED', comparedates)
+                                     maptype='PROBING')
+    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
     return entry
 
 def newFechaEntry(ciudad, avistamiento):
@@ -187,8 +246,19 @@ def newFechaEntry(ciudad, avistamiento):
     """
     ofentry = {'city': None, 'lstcities': None}
     ofentry['city'] = ciudad
-    ofentry['lstcities'] = lt.newList('SINGLELINKED', comparecities)
+    ofentry['lstcities'] = lt.newList('SINGLELINKED')
     return ofentry
+
+def newDurationEntry(avistamiento):
+    """
+    Crea una entrada en el indice por duraciones, es decir en el arbol
+    binario.
+    """
+    entry = {'duration': None, 'lstavistamientos': None}
+    entry['duration'] = m.newMap(numelements=30,
+                                     maptype='PROBING')
+    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
+    return entry
 
 def newTimeEntry(ciudad, avistamiento):
     """
@@ -197,7 +267,17 @@ def newTimeEntry(ciudad, avistamiento):
     """
     ofentry = {'time': None, 'lsttimes': None}
     ofentry['time'] = ciudad
-    ofentry['lsttimes'] = lt.newList('SINGLELINKED', comparecities)
+    ofentry['lsttimes'] = lt.newList('SINGLELINKED')
+    return ofentry
+
+def newCountryEntry(ciudad, avistamiento):
+    """
+    Crea una entrada en el indice por país, es decir en
+    la tabla de hash, que se encuentra en cada nodo del arbol.
+    """
+    ofentry = {'country': None, 'lstcountries': None}
+    ofentry['country'] = ciudad
+    ofentry['lstcountries'] = lt.newList('SINGLELINKED')
     return ofentry
 
 
@@ -222,11 +302,18 @@ def indexHeight(analyzer):
     """
     return om.height(analyzer['fecha'])
 
-def cityHeight(analyzer):
+def citySize(analyzer):
     """
     Altura del arbol de ciudades
     """
-    return om.height(analyzer['ciudad'])
+    return om.size(analyzer['ciudad'])
+
+
+def durationSize(analyzer):
+    """
+    Altura del arbol de duraciones
+    """
+    return om.size(analyzer['duracion'])
 
 
 
@@ -255,11 +342,11 @@ def getAvistamientosByRange(analyzer, initialDate, finalDate):
     Retorna el numero de avistamientos en un rago de fechas.
     """
     lst = om.values(analyzer['fecha'], initialDate, finalDate)
-    totcrimes = 0
+    totavistamientos = 0
     for lstdate in lt.iterator(lst):
-        totcrimes += lt.size(lstdate['lstavistamientos'])
+        totavistamientos += lt.size(lstdate['lstavistamientos'])
                 
-    return totcrimes
+    return totavistamientos
 
 def getAvistamientosByCity(analyzer, city):
 
@@ -267,25 +354,23 @@ def getAvistamientosByCity(analyzer, city):
     values = om.valueSet(analyzer['ciudad'])
     pos = lt.isPresent(keys, city) 
     lst = lt.getElement(values, pos)
-    size = lt.size(lst)
+    size = lt.size(lst['lstavistamientos'])
+    print(size)
 
     if size <= 6:
         return lst
     else: 
-        lst1 = lt.subList(lst, 1, 3)
-        lst2 = lt.subList(lst, size-3, 3)
+        lst1 = lt.subList(lst['lstavistamientos'], 1, 3)
+        lst2 = lt.subList(lst['lstavistamientos'], size-3, 3)
+        
 
-        for x in lst2:
-            elm = lt.getElement(lst2, x)
-            lt.addLast(lst1,elm)
-        return(lst1)
+        for x in lt.iterator(lst1):
+            print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
 
-
-    
-
-
-
-    
+        for x in lt.iterator(lst2):
+            print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
+            
+             
 
 
 def get5bestcities(analyzer):
@@ -298,31 +383,100 @@ def get5bestcities(analyzer):
     values = om.valueSet(analyzer['ciudad'])
     cantidad = lt.newList()
 
-    for value in values:
-        size = lt.size(value)
-        lt.addLast(cantidad, size)
+    for value in lt.iterator(values):
+        if value is not None:
+            size = lt.size(value['lstavistamientos'])
+            lt.addLast(cantidad, size)
 
     i = 0
     while i <= 5:
         pos = getbest(cantidad)
         city = lt.getElement(keys, pos)
         cant = lt.getElement(cantidad, pos)
-        print ("Ciudad: " + str(city) + "Cantidad: " + str(cant))
+        print ("Ciudad: " + str(city) + " Cantidad: " + str(cant))
         lt.deleteElement(keys, pos)
         lt.deleteElement(cantidad, pos)
         i += 1
+
+def get5bestdurations(analyzer):
+    """
+    Retorna las 5 duraciones más largas
+    """
+    keys = om.keySet(analyzer['duracion'])
+    values = om.valueSet(analyzer['duracion'])
+    cantidad = lt.newList()
+
+    for value in lt.iterator(values):
+        if value is not None:
+            size = lt.size(value['lstavistamientos'])
+            lt.addLast(cantidad, size)
+
+    size = lt.size(cantidad)  
+    i = 0
+    while i <= 4:
+        elm = lt.getElement(keys, size-i)
+        cant = lt.getElement(cantidad, size-i)
+        print ("Duración: " + str(elm) + " Cantidad: " + str(cant))
+        i += 1
+
         
 def getbest(lista):
 
     mejor = 0
     pos = 0
 
-    for elm in lista:
+    for elm in lt.iterator(lista):
         x = lt.getElement(lista, elm)
+        y = lt.isPresent(lista, elm)
         if x > mejor:
             mejor = x
-            pos = lt.isPresent(lista, x)
+            pos = y
+    
     return (pos)
+    
+
+def getAvistamientosByDuration(analyzer, min, max):
+
+    values = om.values(analyzer['duracion'], max, min)
+    size = lt.size(values)
+    
+    totavistamientos = 0
+    for lstduration in lt.iterator(values):
+        totavistamientos += lt.size(lstduration['lstavistamientos'])
+    
+    lst1 = lt.newList()
+    lst2 = lt.newList()
+
+    i = 1
+    while lt.size(lst1) <= 3:
+        elm = lt.getElement(values, i)
+        for x in elm['lstavistamientos']:
+            obj = lt.getElement(elm['lstavistamientos'], x)
+            lt.addLast(lst1, obj)
+        i += 1
+
+    c = 0
+    while lt.size(lst2) <= 3:
+        elm = lt.getElement(values, size-c)
+        for x in elm['lstavistamientos']:
+            obj = lt.getElement(elm['lstavistamientos'], x)
+            lt.addLast(lst2, obj)
+        c += 1
+    
+    f = 1
+    while f <= 4:
+        x = lt.getElement(lst1, f)
+        print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
+        y = lt.getElement(lst2, f)
+        print("datetime: " + str(y['datetime']) + " city: " + str(y['city']) + " state: " + str(y['state']) + " country: " + str(y['country']) +  " shape: " + str(y['shape']))
+        f += 1
+
+    
+    
+    
+
+                
+    return totavistamientos
 
 
 
@@ -347,24 +501,6 @@ def getbest(lista):
 # ==============================
 
 
-def comparedates(date1, date2):
-    """
-    Compara dos crimenes
-    """
-    if (datetime.datetime.striptime(date1,'%Y-%m-%d') == datetime.datetime.striptime(date2,'%Y-%m-%d')):
-        return 0
-    elif (datetime.datetime.striptime(date1,'%Y-%m-%d') > datetime.datetime.striptime(date2,'%Y-%m-%d')):
-        return 1
-    else:
-        return -1
 
-def comparecities(city1, city2):
-    """
-    Compara dos crimenes
-    """
-    if (city1 == city2):
-        return 0
-    elif city1 > city2:
-        return 1
-    else:
-        return -1
+
+

@@ -80,11 +80,17 @@ def indexHeight(analyzer):
     """
     return model.indexHeight(analyzer)
 
-def cityHeight(analyzer):
+def citySize(analyzer):
     """
-    Altura del arbol de fechas
+    Altura del arbol de ciudades
     """
-    return model.cityHeight(analyzer)
+    return model.citySize(analyzer)
+
+def durationSize(analyzer):
+    """
+    Altura del arbol de duraciones
+    """
+    return model.durationSize(analyzer)
 
 
 def indexSize(analyzer):
@@ -127,3 +133,15 @@ def get5bestcities(analyzer):
     Retorna las 5 ciudades con más avistamientos
     """
     return model.get5bestcities(analyzer)
+
+def get5bestdurations(analyzer):
+    """
+    Retorna las 5 ciudades con más avistamientos
+    """
+    return model.get5bestdurations(analyzer)
+
+def getAvistamientosByDuration(analyzer, min, max):
+    """
+    Retorna las duraciones en un rango de tiempo de los avistamientos 
+    """
+    return model.getAvistamientosByDuration(analyzer, min, max)
