@@ -92,6 +92,12 @@ def durationSize(analyzer):
     """
     return model.durationSize(analyzer)
 
+def TimeSize(analyzer):
+    """
+    Altura del arbol de horas
+    """
+    return model.TimeSize(analyzer)
+
 
 def indexSize(analyzer):
     """
