@@ -266,6 +266,7 @@ def addTimeIndex(datentry, avistamiento):
         lt.addLast(entry['lsttimes'], avistamiento)
     return datentry
 
+#/////////////////////NewEntry/////////////////////
 
 def newDataEntry(avistamiento):
     """
@@ -291,7 +292,7 @@ def newtimeEntry(avistamiento):
 
 def newCityEntry(avistamiento):
     """
-    Crea una entrada en el indice por fechas, es decir en el arbol
+    Crea una entrada en el indice por duraciones, es decir en el arbol
     binario.
     """
     entry = {'time': None, 'lstavistamientos': None}
