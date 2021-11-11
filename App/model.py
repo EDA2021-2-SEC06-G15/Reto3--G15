@@ -59,14 +59,16 @@ def newAnalyzer():
                 'fecha': None,
                 'ciudad': None,
                 'duracion': None,
-                'time': None
+                'time': None,
+                'longitud': None
                 }
 
     analyzer['avistamientos'] = lt.newList('SINGLE_LINKED', compareElements)
     analyzer['fecha'] = om.newMap(omaptype='BST')
     analyzer['ciudad'] = om.newMap(omaptype='BST') 
     analyzer['duracion'] = om.newMap(omaptype='BST') 
-    analyzer['time'] = om.newMap(omaptype='BST')                                  
+    analyzer['time'] = om.newMap(omaptype='BST') 
+    analyzer['longitud'] = om.newMap(omaptype='BST')                                   
     return analyzer
 
 # Funciones para agregar informacion al catalogo
@@ -79,6 +81,7 @@ def addAvistamiento(analyzer, avistamiento):
     updateCity(analyzer['ciudad'], avistamiento)
     updateDuracion(analyzer['duracion'], avistamiento)
     updateTime(analyzer['time'], avistamiento)
+    updateLongitud(analyzer['longitud'], avistamiento)
     return analyzer
 
 def updateDate(map, avistamiento):
@@ -162,6 +165,25 @@ def updateDuracion(map, avistamiento):
     addCountryIndex(durationentry, avistamiento)
     return map
 
+def updateLongitud(map, avistamiento):
+    """
+    Se toma la longitud del avistamiento y se busca si ya existe en el arbol
+    dicha longitud.  Si es asi, se adiciona a su lista de avistamientos
+    y se actualiza el indice de latitud.
+
+    Si no se encuentra creado un nodo para esa longitud en el arbol
+    se crea y se actualiza el indice de latitud de avistamiento
+    """
+    longitud = avistamiento['longitude']
+    entry = om.get(map, longitud)
+    if entry is None:
+        longitudentry = newLongitudEntry(avistamiento)
+        om.put(map, longitud, longitudentry)
+    else:
+        longitudentry = me.getValue(entry)
+    addLongitudIndex(longitudentry, avistamiento)
+    return map
+
 
 def addCityIndex(datentry, avistamiento):
     """
@@ -241,6 +263,26 @@ def addCountryIndex(datentry, avistamiento):
     else:
         entry = me.getValue(offentry)
         lt.addLast(entry['lstcountries'], avistamiento)
+    return datentry
+
+def addLongitudIndex(datentry, avistamiento):
+    """
+    Actualiza un indice de longitud.  Este indice tiene una lista
+    de avistamientos y una tabla de hash cuya llave es la longitud del avistamiento y
+    el valor es una lista con los avistamientos de dicha longitud en la latitud que
+    se está consultando (dada por el nodo del arbol)
+    """
+    lst = datentry['lstavistamientos']
+    lt.addLast(lst, avistamiento)
+    DateIndex = datentry['longitud']
+    offentry = m.get(DateIndex, avistamiento['longitude'])
+    if (offentry is None):
+        entry = newLatitudEntry(avistamiento['longitude'], avistamiento)
+        lt.addLast(entry['lstlatitudes'], avistamiento)
+        m.put(DateIndex, avistamiento['longitude'], entry)
+    else:
+        entry = me.getValue(offentry)
+        lt.addLast(entry['lstlatitudes'], avistamiento)
     return datentry
 
 
@@ -333,6 +375,17 @@ def newDurationEntry(avistamiento):
     return entry
 
 
+def newLongitudEntry(avistamiento):
+    """
+    Crea una entrada en el indice por longitudes, es decir en el arbol
+    binario.
+    """
+    entry = {'longitd': None, 'lstavistamientos': None}
+    entry['longitud'] = m.newMap(numelements=30,
+                                     maptype='PROBING')
+    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
+    return entry
+
 
 def newTimeEntry(ciudad, avistamiento):
     """
@@ -352,6 +405,16 @@ def newCountryEntry(ciudad, avistamiento):
     ofentry = {'country': None, 'lstcountries': None}
     ofentry['country'] = ciudad
     ofentry['lstcountries'] = lt.newList('SINGLELINKED')
+    return ofentry
+
+def newLatitudEntry(ciudad, avistamiento):
+    """
+    Crea una entrada en el indice por país, es decir en
+    la tabla de hash, que se encuentra en cada nodo del arbol.
+    """
+    ofentry = {'latitud': None, 'lstlatitudes': None}
+    ofentry['latitud'] = ciudad
+    ofentry['lstlatitudes'] = lt.newList('SINGLELINKED')
     return ofentry
 
 
@@ -397,6 +460,11 @@ def TimeSize(analyzer):
     """
     return om.size(analyzer['time'])
 
+def LongitudSize(analyzer):
+    """
+    Altura del arbol de longitudes
+    """
+    return om.size(analyzer['longitud'])
 
 
 def indexSize(analyzer):
@@ -539,6 +607,39 @@ def getAvistamientosByDuration(analyzer, min, max):
     
                 
     return totavistamientos
+
+def getavistamientos(analyzer, longitud1, longitud2, latitud1, latitud2):
+
+    longitudes = om.values(analyzer['longitud'], longitud1, longitud2)
+    size = lt.size(longitudes)
+    finales = lt.newList()
+       
+    for i in range(1, int(size), 1):
+        value = lt.getElement(longitudes, i)
+        x = lt.size(value['lstavistamientos'])
+        for b in range(1, int(x), x):
+            value2 = lt.getElement(value['lstavistamientos'], b)
+            if latitud1 <= value2['latitude'] <= latitud2:
+                lt.addLast(finales, value2)
+    
+    cant =lt.size(finales)
+    print("Cantidad de avistamientos en el rango: " + str(cant))
+
+    if cant <= 6:
+        for x in lt.iterator(finales):
+            print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
+
+    else: 
+        i = 0
+        while i < 3:
+            x = lt.getElement(finales, i)
+            y = lt.getElement(finales, size-i)
+
+            
+            print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
+            print("datetime: " + str(y['datetime']) + " city: " + str(y['city']) + " state: " + str(y['state']) + " country: " + str(y['country']) +  " shape: " + str(y['shape']))
+
+        
 
 
 # Funciones utilizadas para comparar elementos dentro de una lista

@@ -98,6 +98,12 @@ def TimeSize(analyzer):
     """
     return model.TimeSize(analyzer)
 
+def LongitudSize(analyzer):
+    """
+    Altura del arbol de longitudes
+    """
+    return model.LongitudSize(analyzer)
+
 
 def indexSize(analyzer):
     """
@@ -151,3 +157,7 @@ def getAvistamientosByDuration(analyzer, min, max):
     Retorna las duraciones en un rango de tiempo de los avistamientos 
     """
     return model.getAvistamientosByDuration(analyzer, min, max)
+
+def getavistamientos(analyzer, longitud1, longitud2, latitud1, latitud2):
+
+    return model.getavistamientos(analyzer, longitud1, longitud2, latitud1, latitud2)

@@ -130,7 +130,14 @@ while True:
         print("\nTotal de avistamientos en el rango de fechas: " + str(total))
     
     elif int(inputs[0]) == 7:
-        pass
+
+        longitudes = controller.LongitudSize(cont)
+        print("\nTotal de diferentes longitudes de avisamientos " + str(longitudes))
+        longitud1 = input("Longitud Inicial: ")
+        longitud2 = input("Longitud Final: ")
+        latitud1 = input("Latitud Inicial: ")
+        latitud2 = input("Latitud Final: ")
+        avistamientos = controller.getavistamientos(cont, longitud1, longitud2, latitud1, latitud2)
     
     elif int(inputs[0]) == 8:
         pass
