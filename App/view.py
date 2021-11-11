@@ -113,12 +113,14 @@ while True:
         total = controller.getAvistamientosByDuration(cont, min, max)
         print("\nTotal de avistamientos en el rango de tiempos: " + str(total))
 
-
-
-        
-
+     
     elif int(inputs[0]) == 5:
-        pass
+        hora1 = input("Hora Inicial (hh:mm:ss): ")
+        hora2 = input("Hora Final (hh:mm:ss): ")
+        horas = controller.TimeSize(cont)
+        print("\nTotal de diferentes horas de avisamientos " + str(horas))
+        
+        print("\nTotal de diferentes horas de avisamientos " + str(horas))
     
     elif int(inputs[0]) == 6:
         print("\nBuscando avistamientos en un rango de fechas: ")

@@ -58,13 +58,15 @@ def newAnalyzer():
     analyzer = {'avistamientos': None,
                 'fecha': None,
                 'ciudad': None,
-                'duracion': None
+                'duracion': None,
+                'time': None
                 }
 
     analyzer['avistamientos'] = lt.newList('SINGLE_LINKED', compareElements)
     analyzer['fecha'] = om.newMap(omaptype='BST')
     analyzer['ciudad'] = om.newMap(omaptype='BST') 
-    analyzer['duracion'] = om.newMap(omaptype='BST')                                  
+    analyzer['duracion'] = om.newMap(omaptype='BST') 
+    analyzer['time'] = om.newMap(omaptype='BST')                                  
     return analyzer
 
 # Funciones para agregar informacion al catalogo
@@ -76,6 +78,7 @@ def addAvistamiento(analyzer, avistamiento):
     updateDate(analyzer['fecha'], avistamiento)
     updateCity(analyzer['ciudad'], avistamiento)
     updateDuracion(analyzer['duracion'], avistamiento)
+    updateTime(analyzer['duracion'], avistamiento)
     return analyzer
 
 def updateDate(map, avistamiento):
@@ -98,6 +101,28 @@ def updateDate(map, avistamiento):
         datentry = me.getValue(entry)
     addCityIndex(datentry, avistamiento)
     return map
+
+def updateTime(map, avistamiento):
+    """
+    Se toma la hora del avistamiento y se busca si ya existe en el arbol
+    dicha hora.  Si es asi, se adiciona a su lista de avistamientos
+    y se actualiza el indice de ciudad.
+
+    Si no se encuentra creado un nodo para esa duración en el arbol
+    se crea y se actualiza el indice de ciudad de avistamiento
+    """
+    occurredtime = avistamiento['datetime']
+    hora = occurredtime[11:19]+":00"
+    time = datetime.datetime.strptime(hora, '%H:%M:%S:%f')
+    entry = om.get(map, time.time())
+    if entry is None:
+        Timeentry = newtimeEntry(avistamiento)
+        om.put(map, time.time(), Timeentry)
+    else:
+        Timeentry = me.getValue(entry)
+    addcityIndex(Timeentry, avistamiento)
+    return map
+
 
 def updateCity(map, avistamiento):
     """
@@ -137,6 +162,7 @@ def updateDuracion(map, avistamiento):
     addCountryIndex(durationentry, avistamiento)
     return map
 
+
 def addCityIndex(datentry, avistamiento):
     """
     Actualiza un indice de ciudad.  Este indice tiene una lista
@@ -150,6 +176,26 @@ def addCityIndex(datentry, avistamiento):
     offentry = m.get(DateIndex, avistamiento['city'])
     if (offentry is None):
         entry = newFechaEntry(avistamiento['city'], avistamiento)
+        lt.addLast(entry['lstcities'], avistamiento)
+        m.put(DateIndex, avistamiento['city'], entry)
+    else:
+        entry = me.getValue(offentry)
+        lt.addLast(entry['lstcities'], avistamiento)
+    return datentry
+
+def addcityIndex(datentry, avistamiento):
+    """
+    Actualiza un indice de hora.  Este indice tiene una lista
+    de avistamientos y una tabla de hash cuya llave es la hora del avistamiento y
+    el valor es una lista con los avistamientos de dicha hora en la ciudad que
+    se está consultando (dada por el nodo del arbol)
+    """
+    lst = datentry['lstavistamientos']
+    lt.addLast(lst, avistamiento)
+    DateIndex = datentry['city']
+    offentry = m.get(DateIndex, avistamiento['city'])
+    if (offentry is None):
+        entry = newHourEntry(avistamiento['city'], avistamiento)
         lt.addLast(entry['lstcities'], avistamiento)
         m.put(DateIndex, avistamiento['city'], entry)
     else:
@@ -197,6 +243,9 @@ def addCountryIndex(datentry, avistamiento):
         lt.addLast(entry['lstcountries'], avistamiento)
     return datentry
 
+
+
+
 def addTimeIndex(datentry, avistamiento):
     """
     Actualiza un indice de tiempo de avistamiento.  Este indice tiene una lista
@@ -229,6 +278,17 @@ def newDataEntry(avistamiento):
     entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
     return entry
 
+def newtimeEntry(avistamiento):
+    """
+    Crea una entrada en el indice por hora, es decir en el arbol
+    binario.
+    """
+    entry = {'city': None, 'lstavistamientos': None}
+    entry['city'] = m.newMap(numelements=30,
+                                     maptype='PROBING')
+    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
+    return entry
+
 def newCityEntry(avistamiento):
     """
     Crea una entrada en el indice por fechas, es decir en el arbol
@@ -250,6 +310,16 @@ def newFechaEntry(ciudad, avistamiento):
     ofentry['lstcities'] = lt.newList('SINGLELINKED')
     return ofentry
 
+def newHourEntry(ciudad, avistamiento):
+    """
+    Crea una entrada en el indice por ciudad, es decir en
+    la tabla de hash, que se encuentra en cada nodo del arbol.
+    """
+    ofentry = {'city': None, 'lstcities': None}
+    ofentry['city'] = ciudad
+    ofentry['lstcities'] = lt.newList('SINGLELINKED')
+    return ofentry
+
 def newDurationEntry(avistamiento):
     """
     Crea una entrada en el indice por duraciones, es decir en el arbol
@@ -260,6 +330,8 @@ def newDurationEntry(avistamiento):
                                      maptype='PROBING')
     entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
     return entry
+
+
 
 def newTimeEntry(ciudad, avistamiento):
     """
@@ -280,6 +352,8 @@ def newCountryEntry(ciudad, avistamiento):
     ofentry['country'] = ciudad
     ofentry['lstcountries'] = lt.newList('SINGLELINKED')
     return ofentry
+
+
 
 
 
@@ -315,6 +389,12 @@ def durationSize(analyzer):
     Altura del arbol de duraciones
     """
     return om.size(analyzer['duracion'])
+
+def TimeSize(analyzer):
+    """
+    Altura del arbol de horas
+    """
+    return om.size(analyzer['time'])
 
 
 
