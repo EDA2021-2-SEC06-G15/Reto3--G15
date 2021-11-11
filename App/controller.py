@@ -104,6 +104,12 @@ def LongitudSize(analyzer):
     """
     return model.LongitudSize(analyzer)
 
+def dateSize(analyzer):
+    """
+    Altura del arbol de fechas
+    """
+    return model.dateSize(analyzer)
+
 
 def indexSize(analyzer):
     """
@@ -161,3 +167,7 @@ def getAvistamientosByDuration(analyzer, min, max):
 def getavistamientos(analyzer, longitud1, longitud2, latitud1, latitud2):
 
     return model.getavistamientos(analyzer, longitud1, longitud2, latitud1, latitud2)
+
+def older(analyzer):
+
+    return model.older(analyzer)

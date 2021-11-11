@@ -466,6 +466,12 @@ def LongitudSize(analyzer):
     """
     return om.size(analyzer['longitud'])
 
+def dateSize(analyzer):
+    """
+    Altura del arbol de fechas
+    """
+    return om.size(analyzer['fecha'])
+
 
 def indexSize(analyzer):
     """
@@ -522,11 +528,7 @@ def getAvistamientosByCity(analyzer, city):
             print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
         
         
-        for x in lt.iterator(lst1):
-            print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
-
-        for x in lt.iterator(lst2):
-            print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
+        
         
              
 
@@ -642,7 +644,21 @@ def getavistamientos(analyzer, longitud1, longitud2, latitud1, latitud2):
             print("datetime: " + str(y['datetime']) + " city: " + str(y['city']) + " state: " + str(y['state']) + " country: " + str(y['country']) +  " shape: " + str(y['shape']))
 
         
+def older(analyzer):
 
+    keys = om.keySet(analyzer['fecha'])
+    values = om.valueSet(analyzer['fecha'])
+    size = lt.size(keys)
+  
+    i = 1
+    while i <= 5:
+        x = lt.getElement(keys, i)
+        pos = lt.isPresent(keys, x)
+        y = lt.getElement(values, pos)
+        cant = lt.size(y['lstavistamientos'])
+
+        print("Fecha: " + str(x) + " cantidad: " + str(cant))
+        i += 1
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 

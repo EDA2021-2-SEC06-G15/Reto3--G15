@@ -127,6 +127,9 @@ while True:
         print("\nBuscando avistamientos en un rango de fechas: ")
         initialDate = input("Fecha Inicial (YYYY-MM-DD): ")
         finalDate = input("Fecha Final (YYYY-MM-DD): ")
+        cant = controller.dateSize(cont)
+        print("\nTotal de diferentes fechas de avistamientos  " + str(cant))
+        oldest = controller.older(cont)
         total = controller.getAvistamientosByRange(cont, initialDate, finalDate)
         print("\nTotal de avistamientos en el rango de fechas: " + str(total))
     
