@@ -112,6 +112,7 @@ while True:
         controller.get5bestdurations(cont)
         total = controller.getAvistamientosByDuration(cont, min, max)
         print("\nTotal de avistamientos en el rango de tiempos: " + str(total))
+        print("\nLos primeros 3 y ultimos 3 avistamientos en el rango de duración dado son: ")
 
      
     elif int(inputs[0]) == 5:

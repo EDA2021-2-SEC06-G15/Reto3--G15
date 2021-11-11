@@ -434,7 +434,7 @@ def getAvistamientosByCity(analyzer, city):
 
     keys = om.keySet(analyzer['ciudad'])
     values = om.valueSet(analyzer['ciudad'])
-    pos = lt.isPresent(keys, city) 
+    pos = lt.isPresent(keys, city)
     lst = lt.getElement(values, pos)
     size = lt.size(lst['lstavistamientos'])
     
@@ -495,21 +495,23 @@ def get5bestdurations(analyzer):
     values = om.valueSet(analyzer['duracion'])
   
     i = 0
-    while i < 4:
+    while i < 5:
 
         mejor = 0
         value = 0
     
         for key in lt.iterator(keys):
             if key is not None:
-                if float(lt.getElement(keys, key)) > mejor:
-                    mejor = float(lt.getElement(keys, key))
-                    pos = lt.isPresent(keys, lt.getElement(keys, key))
-                    value = lt.getElement(values, pos)
+                if float(key) < lt.size(keys): 
+                    if float(lt.getElement(keys, float(key))) > mejor:
+                        mejor = float(lt.getElement(keys, float(key)))
+                        pos = lt.isPresent(keys, lt.getElement(keys, float(key)))
+                        value = lt.getElement(values, pos)
         
-        print ("Duración: " + str(mejor) + " Cantidad: " + str(lt.size(value['lstavistamientos'])))
+        print ("Duración (Segundos): " + str(mejor) + "; Cantidad: " + str(lt.size(value['lstavistamientos'])))
         lt.deleteElement(keys, pos)
         lt.deleteElement(values, pos)
+        
         i += 1
 
  
