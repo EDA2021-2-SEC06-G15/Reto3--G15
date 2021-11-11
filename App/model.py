@@ -78,7 +78,7 @@ def addAvistamiento(analyzer, avistamiento):
     updateDate(analyzer['fecha'], avistamiento)
     updateCity(analyzer['ciudad'], avistamiento)
     updateDuracion(analyzer['duracion'], avistamiento)
-    updateTime(analyzer['duracion'], avistamiento)
+    updateTime(analyzer['time'], avistamiento)
     return analyzer
 
 def updateDate(map, avistamiento):
@@ -112,12 +112,12 @@ def updateTime(map, avistamiento):
     se crea y se actualiza el indice de ciudad de avistamiento
     """
     occurredtime = avistamiento['datetime']
-    hora = occurredtime[11:19]+":00"
-    time = datetime.datetime.strptime(hora, '%H:%M:%S:%f')
-    entry = om.get(map, time.time())
+    hora = occurredtime[11:19] 
+    time = datetime.datetime.strptime(hora, '%H:%M:%S')
+    entry = om.get(map, time.date())
     if entry is None:
         Timeentry = newtimeEntry(avistamiento)
-        om.put(map, time.time(), Timeentry)
+        om.put(map, time.date(), Timeentry)
     else:
         Timeentry = me.getValue(entry)
     addcityIndex(Timeentry, avistamiento)
