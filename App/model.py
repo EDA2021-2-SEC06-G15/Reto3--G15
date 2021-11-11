@@ -452,7 +452,14 @@ def getAvistamientosByCity(analyzer, city):
 
         for x in lt.iterator(lst2):
             print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
-            
+        
+        
+        for x in lt.iterator(lst1):
+            print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
+
+        for x in lt.iterator(lst2):
+            print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
+        
              
 
 
@@ -460,7 +467,6 @@ def get5bestcities(analyzer):
     """
     Retorna las 5 ciudades con más avistamientos
     """
-    
 
     keys = om.keySet(analyzer['ciudad'])
     values = om.valueSet(analyzer['ciudad'])
@@ -470,13 +476,13 @@ def get5bestcities(analyzer):
         if value is not None:
             size = lt.size(value['lstavistamientos'])
             lt.addLast(cantidad, size)
-
+    
     i = 0
     while i <= 4:
         pos = getbest(cantidad)
         city = lt.getElement(keys, pos)
         cant = lt.getElement(cantidad, pos)
-        print ("Ciudad: " + str(city) + " Cantidad: " + str(cant))
+        print ("Ciudad: " + str(city) + "; Cantidad: " + str(cant))
         lt.deleteElement(keys, pos)
         lt.deleteElement(cantidad, pos)
         i += 1
@@ -511,7 +517,6 @@ def getbest(lista):
 
     mejor = 0
     pos = 0
-    print(lista)
     for elm in lt.iterator(lista):
         x = lt.getElement(lista, elm)
         
