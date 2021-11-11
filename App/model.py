@@ -52,7 +52,6 @@ def newAnalyzer():
     Crea una lista vacia para guardar todos los crimenes
     Se crean indices (Maps) por los siguientes criterios:
     -Fechas
-    -Duración en segundos
 
     Retorna el analizador inicializado.
     """
@@ -78,24 +77,6 @@ def addAvistamiento(analyzer, avistamiento):
     updateCity(analyzer['ciudad'], avistamiento)
     updateDuracion(analyzer['duracion'], avistamiento)
     return analyzer
-
-def updateDuracionSeg(map, avistamiento):
-    """
-    Se toma la duración en segundos del avistamiento y se busca si ya existe en el arbol
-    dicha duración.  Si es asi, se adiciona a su lista de avistamientos
-    y se actualiza el indice de tipos de crimenes.
-
-    Si no se encuentra creado un nodo para esa duración en el arbol
-    se crea y se actualiza el indice de ciudades
-    """
-    duration = avistamiento['duration (seconds)']
-    entry = om.get(map, duration)
-    if entry is None:
-        datentry = newDurationEntry(avistamiento)
-        om.put(map, duration, datentry)
-    else:
-        datentry = me.getValue(entry)
-    return map
 
 def updateDate(map, avistamiento):
     """
@@ -235,7 +216,6 @@ def addTimeIndex(datentry, avistamiento):
         entry = me.getValue(offentry)
         lt.addLast(entry['lsttimes'], avistamiento)
     return datentry
-    
 
 
 def newDataEntry(avistamiento):
@@ -260,18 +240,7 @@ def newCityEntry(avistamiento):
     entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
     return entry
 
-def newDurationEntry(avistamiento):
-    """
-    Crea una entrada en el indice por fechas, es decir en el arbol
-    binario.
-    """
-    entry = {'Date': None, 'lstavistamientos': None}
-    entry['Date'] = m.newMap(numelements=30,
-                                     maptype='PROBING')
-    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
-    return entry
-
-def newCityEntry(ciudad, avistamiento):
+def newFechaEntry(ciudad, avistamiento):
     """
     Crea una entrada en el indice por ciudad, es decir en
     la tabla de hash, que se encuentra en cada nodo del arbol.
@@ -371,7 +340,7 @@ def maxKey(analyzer):
 
 def getAvistamientosByRange(analyzer, initialDate, finalDate):
     """
-    Retorna el numero de avistamientos en un rango de fechas.
+    Retorna el numero de avistamientos en un rago de fechas.
     """
     lst = om.values(analyzer['fecha'], initialDate, finalDate)
     totavistamientos = 0
@@ -456,14 +425,7 @@ def get5bestdurations(analyzer):
         lt.deleteElement(values, pos)
         i += 1
 
-
-
-
-
-
-    
-
-        
+ 
 def getbest(lista):
 
     mejor = 0
@@ -493,31 +455,6 @@ def getAvistamientosByDuration(analyzer, min, max):
     return totavistamientos
 
 
-
-        
-
-
-
-
-
-
-
-
-
-
-
-def getAvistamientosByDurationRange(analyzer, min, max):
-    """
-    Retorna el numero de avistamientos en un rango.
-    """
-    lst = om.values(analyzer['duracion en seg'], min, max)
-    print(analyzer['duracion en seg']) 
-    tot = 0
-    for lstdate in lt.iterator(lst):
-        tot += lt.size(lstdate['lstavistamientos'])
-    return tot
-
-
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 # Funciones de ordenamiento
@@ -528,6 +465,7 @@ def getAvistamientosByDurationRange(analyzer, min, max):
 
 def comparedurations(duration1, duration2):
     return (duration1 > duration2)
+
 
 
 
