@@ -31,6 +31,7 @@ import config
 from DISClib.ADT import list as lt
 from DISClib.ADT import orderedmap as om
 from DISClib.DataStructures import mapentry as me
+from DISClib.Algorithms.Sorting import quicksort as sa
 from DISClib.ADT import map as m
 import datetime
 assert config
@@ -355,7 +356,8 @@ def getAvistamientosByCity(analyzer, city):
     pos = lt.isPresent(keys, city) 
     lst = lt.getElement(values, pos)
     size = lt.size(lst['lstavistamientos'])
-    print(size)
+    
+    print("\nTotal de avistamientos en la ciudad dada: " + str(size))
 
     if size <= 6:
         return lst
@@ -389,7 +391,7 @@ def get5bestcities(analyzer):
             lt.addLast(cantidad, size)
 
     i = 0
-    while i <= 5:
+    while i <= 4:
         pos = getbest(cantidad)
         city = lt.getElement(keys, pos)
         cant = lt.getElement(cantidad, pos)
@@ -404,29 +406,41 @@ def get5bestdurations(analyzer):
     """
     keys = om.keySet(analyzer['duracion'])
     values = om.valueSet(analyzer['duracion'])
-    cantidad = lt.newList()
-
-    for value in lt.iterator(values):
-        if value is not None:
-            size = lt.size(value['lstavistamientos'])
-            lt.addLast(cantidad, size)
-
-    size = lt.size(cantidad)  
+  
     i = 0
-    while i <= 4:
-        elm = lt.getElement(keys, size-i)
-        cant = lt.getElement(cantidad, size-i)
-        print ("Duración: " + str(elm) + " Cantidad: " + str(cant))
+    while i < 4:
+
+        mejor = 0
+        value = 0
+    
+        for key in lt.iterator(keys):
+            if key is not None:
+                if float(lt.getElement(keys, key)) > mejor:
+                    mejor = float(lt.getElement(keys, key))
+                    pos = lt.isPresent(keys, lt.getElement(keys, key))
+                    value = lt.getElement(values, pos)
+        
+        print ("Duración: " + str(mejor) + " Cantidad: " + str(lt.size(value['lstavistamientos'])))
+        lt.deleteElement(keys, pos)
+        lt.deleteElement(values, pos)
         i += 1
+
+
+
+
+
+
+    
 
         
 def getbest(lista):
 
     mejor = 0
     pos = 0
-
+    print(lista)
     for elm in lt.iterator(lista):
         x = lt.getElement(lista, elm)
+        
         y = lt.isPresent(lista, elm)
         if x > mejor:
             mejor = x
@@ -444,37 +458,6 @@ def getAvistamientosByDuration(analyzer, min, max):
     for lstduration in lt.iterator(values):
         totavistamientos += lt.size(lstduration['lstavistamientos'])
     
-    lst1 = lt.newList()
-    lst2 = lt.newList()
-
-    i = 1
-    while lt.size(lst1) <= 3:
-        elm = lt.getElement(values, i)
-        for x in elm['lstavistamientos']:
-            obj = lt.getElement(elm['lstavistamientos'], x)
-            lt.addLast(lst1, obj)
-        i += 1
-
-    c = 0
-    while lt.size(lst2) <= 3:
-        elm = lt.getElement(values, size-c)
-        for x in elm['lstavistamientos']:
-            obj = lt.getElement(elm['lstavistamientos'], x)
-            lt.addLast(lst2, obj)
-        c += 1
-    
-    f = 1
-    while f <= 4:
-        x = lt.getElement(lst1, f)
-        print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
-        y = lt.getElement(lst2, f)
-        print("datetime: " + str(y['datetime']) + " city: " + str(y['city']) + " state: " + str(y['state']) + " country: " + str(y['country']) +  " shape: " + str(y['shape']))
-        f += 1
-
-    
-    
-    
-
                 
     return totavistamientos
 
@@ -499,6 +482,10 @@ def getAvistamientosByDuration(analyzer, min, max):
 # ==============================
 # Funciones de Comparacion
 # ==============================
+
+def comparedurations(duration1, duration2):
+    return (duration1 > duration2)
+
 
 
 

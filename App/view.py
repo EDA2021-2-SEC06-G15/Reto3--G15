@@ -96,9 +96,10 @@ while True:
         city = input("Ingrese la ciudad: ")
         print("\nBuscando avistamientos en la ciudad de: " + str(city))
         cities = controller.citySize(cont)
-        print("\nTotal de ciudades con avisamientos " + str(cities))
-        print("------------------------------")
+        print("\nTotal de ciudades con avisamientos: " + str(cities))
+        print("-----------------------------------------")
         print("\nTop 5 ciudades con más avistamientos: " )
+        print("-----------------------------------------")
         controller.get5bestcities(cont)
         controller.getAvistamientosByCity(cont, city)
         
