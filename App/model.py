@@ -25,10 +25,13 @@
  """
 
 
+
+from DISClib.DataStructures.arraylist import compareElements
 import config
 from DISClib.ADT import list as lt
 from DISClib.ADT import orderedmap as om
 from DISClib.DataStructures import mapentry as me
+from DISClib.Algorithms.Sorting import quicksort as sa
 from DISClib.ADT import map as m
 import datetime
 assert config
@@ -49,22 +52,19 @@ def newAnalyzer():
     Crea una lista vacia para guardar todos los crimenes
     Se crean indices (Maps) por los siguientes criterios:
     -Fechas
-    -Duración en segundos
 
     Retorna el analizador inicializado.
     """
     analyzer = {'avistamientos': None,
                 'fecha': None,
-                'duracion en seg': None
+                'ciudad': None,
+                'duracion': None
                 }
 
-    analyzer['avistamientos'] = lt.newList('SINGLE_LINKED', comparedates)
-    analyzer['fecha'] = om.newMap(omaptype='RBT',
-                                      comparefunction=compareobjets)
-    analyzer['duracion en seg']= om.newMap(omaptype='RBT',
-                                      comparefunction=compareobjets)
-    
-    
+    analyzer['avistamientos'] = lt.newList('SINGLE_LINKED', compareElements)
+    analyzer['fecha'] = om.newMap(omaptype='BST')
+    analyzer['ciudad'] = om.newMap(omaptype='BST') 
+    analyzer['duracion'] = om.newMap(omaptype='BST')                                  
     return analyzer
 
 # Funciones para agregar informacion al catalogo
@@ -74,17 +74,15 @@ def addAvistamiento(analyzer, avistamiento):
     """
     lt.addLast(analyzer['avistamientos'], avistamiento)
     updateDate(analyzer['fecha'], avistamiento)
-    updateDuracionSeg(analyzer['duracion en seg'], avistamiento)
-
+    updateCity(analyzer['ciudad'], avistamiento)
+    updateDuracion(analyzer['duracion'], avistamiento)
     return analyzer
-
-#/////////////////////Update/////////////////////
 
 def updateDate(map, avistamiento):
     """
     Se toma la fecha del avistamiento y se busca si ya existe en el arbol
     dicha fecha.  Si es asi, se adiciona a su lista de avistamientos
-    y se actualiza el indice de tipos de crimenes.
+    y se actualiza el indice de ciudades.
 
     Si no se encuentra creado un nodo para esa fecha en el arbol
     se crea y se actualiza el indice de ciudades
@@ -101,39 +99,43 @@ def updateDate(map, avistamiento):
     addCityIndex(datentry, avistamiento)
     return map
 
-def updateDuracionSeg(map, avistamiento):
+def updateCity(map, avistamiento):
     """
-    Se toma la duración en segundos del avistamiento y se busca si ya existe en el arbol
-    dicha duración.  Si es asi, se adiciona a su lista de avistamientos
-    y se actualiza el indice de tipos de crimenes.
+    Se toma la ciudad del avistamiento y se busca si ya existe en el arbol
+    dicha ciudad.  Si es asi, se adiciona a su lista de avistamientos
+    y se actualiza el indice de tiempo de avistamiento.
 
-    Si no se encuentra creado un nodo para esa duración en el arbol
-    se crea y se actualiza el indice de ciudades
+    Si no se encuentra creado un nodo para esa ciudad en el arbol
+    se crea y se actualiza el indice de tiempo de avistamiento
     """
-    """""
-    duration = avistamiento['duration (seconds)']
-    entry = om.contains(map, duration)
-    print(entry)
-    i=om.get(map, duration)
-    if entry is False:
-        datentry = newDurationEntry(avistamiento)
-        om.put(map, duration, datentry)
-    else:
-        datentry = me.getValue(i)
-    addCityDurationIndex(datentry, avistamiento)
-    """
-    occurreddate = avistamiento['duration (seconds)']
-    date = occurreddate
-    entry = om.get(map, date)
+    occurredcity = avistamiento['city']
+    entry = om.get(map, occurredcity)
     if entry is None:
-        datentry = newDataEntry(avistamiento)
-        om.put(map, date, datentry)
+        cityentry = newCityEntry(avistamiento)
+        om.put(map, occurredcity, cityentry)
     else:
-        datentry = me.getValue(entry)
-    addCityIndex(datentry, avistamiento)
+        cityentry = me.getValue(entry)
+    addTimeIndex(cityentry, avistamiento)
     return map
 
-#/////////////////////Add/////////////////////
+def updateDuracion(map, avistamiento):
+    """
+    Se toma la duración del avistamiento y se busca si ya existe en el arbol
+    dicha duración.  Si es asi, se adiciona a su lista de avistamientos
+    y se actualiza el indice de ciudad.
+
+    Si no se encuentra creado un nodo para esa duración en el arbol
+    se crea y se actualiza el indice de ciudad de avistamiento
+    """
+    occurredcity = avistamiento['duration (seconds)']
+    entry = om.get(map, occurredcity)
+    if entry is None:
+        durationentry = newDurationEntry(avistamiento)
+        om.put(map, occurredcity, durationentry)
+    else:
+        durationentry = me.getValue(entry)
+    addCountryIndex(durationentry, avistamiento)
+    return map
 
 def addCityIndex(datentry, avistamiento):
     """
@@ -144,72 +146,143 @@ def addCityIndex(datentry, avistamiento):
     """
     lst = datentry['lstavistamientos']
     lt.addLast(lst, avistamiento)
-    DateIndex = datentry['Date']
+    DateIndex = datentry['city']
     offentry = m.get(DateIndex, avistamiento['city'])
     if (offentry is None):
-        entry = newCityEntry(avistamiento['city'], avistamiento)
+        entry = newFechaEntry(avistamiento['city'], avistamiento)
         lt.addLast(entry['lstcities'], avistamiento)
         m.put(DateIndex, avistamiento['city'], entry)
     else:
         entry = me.getValue(offentry)
-        lt.addLast(entry['lstoffenses'], avistamiento)
+        lt.addLast(entry['lstcities'], avistamiento)
     return datentry
-    
-def addCityDurationIndex(datentry, avistamiento):
+
+def addTimeIndex(datentry, avistamiento):
     """
-    Actualiza un indice de ciudad.  Este indice tiene una lista
-    de avistamientos y una tabla de hash cuya llave es la ciudad de avistamiento y
-    el valor es una lista con los avistamientos de dicha ciudad en la fecha que
+    Actualiza un indice de tiempo de avistamiento.  Este indice tiene una lista
+    de avistamientos y una tabla de hash cuya llave es el tiempo de avistamiento y
+    el valor es una lista con los avistamientos de dicho tiempo en la ciudad que
     se está consultando (dada por el nodo del arbol)
     """
     lst = datentry['lstavistamientos']
     lt.addLast(lst, avistamiento)
-    DateIndex = datentry['duration (seconds)']
-    offentry = m.get(DateIndex, avistamiento['city'])
+    CityIndex = datentry['time']
+    offentry = m.get(CityIndex, avistamiento['city'])
     if (offentry is None):
-        entry = newCityEntry(avistamiento['city'], avistamiento)
-        lt.addLast(entry['lstcities'], avistamiento)
-        m.put(DateIndex, avistamiento['city'], entry)
+        entry = newTimeEntry(avistamiento['city'], avistamiento)
+        lt.addLast(entry['lsttimes'], avistamiento)
+        m.put(CityIndex, avistamiento['city'], entry)
     else:
         entry = me.getValue(offentry)
-        lt.addLast(entry['lstoffenses'], avistamiento)
+        lt.addLast(entry['lsttimes'], avistamiento)
+    return datentry
+
+def addCountryIndex(datentry, avistamiento):
+    """
+    Actualiza un indice de duración.  Este indice tiene una lista
+    de avistamientos y una tabla de hash cuya llave es la duración del avistamiento y
+    el valor es una lista con los avistamientos de dicha ciudad en el país que
+    se está consultando (dada por el nodo del arbol)
+    """
+    lst = datentry['lstavistamientos']
+    lt.addLast(lst, avistamiento)
+    DateIndex = datentry['duration']
+    offentry = m.get(DateIndex, avistamiento['duration (seconds)'])
+    if (offentry is None):
+        entry = newCountryEntry(avistamiento['duration (seconds)'], avistamiento)
+        lt.addLast(entry['lstcountries'], avistamiento)
+        m.put(DateIndex, avistamiento['duration (seconds)'], entry)
+    else:
+        entry = me.getValue(offentry)
+        lt.addLast(entry['lstcountries'], avistamiento)
+    return datentry
+
+def addTimeIndex(datentry, avistamiento):
+    """
+    Actualiza un indice de tiempo de avistamiento.  Este indice tiene una lista
+    de avistamientos y una tabla de hash cuya llave es el tiempo de avistamiento y
+    el valor es una lista con los avistamientos de dicho tiempo en la ciudad que
+    se está consultando (dada por el nodo del arbol)
+    """
+    lst = datentry['lstavistamientos']
+    lt.addLast(lst, avistamiento)
+    CityIndex = datentry['time']
+    offentry = m.get(CityIndex, avistamiento['city'])
+    if (offentry is None):
+        entry = newTimeEntry(avistamiento['city'], avistamiento)
+        lt.addLast(entry['lsttimes'], avistamiento)
+        m.put(CityIndex, avistamiento['city'], entry)
+    else:
+        entry = me.getValue(offentry)
+        lt.addLast(entry['lsttimes'], avistamiento)
     return datentry
 
 #/////////////////////NewEntry/////////////////////
 
 def newDataEntry(avistamiento):
     """
-    Crea una entrada en el indice por fechas, es decir en el arbol
+    Crea una entrada en el indice por ciudades, es decir en el arbol
     binario.
     """
-    entry = {'Date': None, 'lstavistamientos': None}
-    entry['Date'] = m.newMap(numelements=30,
-                                     maptype='PROBING',
-                                     comparefunction=comparedates)
-    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED', comparedates)
+    entry = {'city': None, 'lstavistamientos': None}
+    entry['city'] = m.newMap(numelements=30,
+                                     maptype='PROBING')
+    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
     return entry
 
-def newDurationEntry(avistamiento):
+def newCityEntry(avistamiento):
     """
     Crea una entrada en el indice por duraciones, es decir en el arbol
     binario.
     """
-    entry = {'duration (seconds)': None, 'lstavistamientos': None}
-    entry['duration (seconds)'] = m.newMap(numelements=30,
-                                     maptype='PROBING',
-                                     comparefunction=compareobjets)
-    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED', compareobjets)
+    entry = {'time': None, 'lstavistamientos': None}
+    entry['time'] = m.newMap(numelements=30,
+                                     maptype='PROBING')
+    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
     return entry
 
-def newCityEntry(ciudad, avistamiento):
+def newFechaEntry(ciudad, avistamiento):
     """
     Crea una entrada en el indice por ciudad, es decir en
     la tabla de hash, que se encuentra en cada nodo del arbol.
     """
     ofentry = {'city': None, 'lstcities': None}
     ofentry['city'] = ciudad
-    ofentry['lstcities'] = lt.newList('SINGLELINKED', compareobjets)
+    ofentry['lstcities'] = lt.newList('SINGLELINKED')
     return ofentry
+
+def newDurationEntry(avistamiento):
+    """
+    Crea una entrada en el indice por duraciones, es decir en el arbol
+    binario.
+    """
+    entry = {'duration': None, 'lstavistamientos': None}
+    entry['duration'] = m.newMap(numelements=30,
+                                     maptype='PROBING')
+    entry['lstavistamientos'] = lt.newList('SINGLE_LINKED')
+    return entry
+
+def newTimeEntry(ciudad, avistamiento):
+    """
+    Crea una entrada en el indice por tiempo, es decir en
+    la tabla de hash, que se encuentra en cada nodo del arbol.
+    """
+    ofentry = {'time': None, 'lsttimes': None}
+    ofentry['time'] = ciudad
+    ofentry['lsttimes'] = lt.newList('SINGLELINKED')
+    return ofentry
+
+def newCountryEntry(ciudad, avistamiento):
+    """
+    Crea una entrada en el indice por país, es decir en
+    la tabla de hash, que se encuentra en cada nodo del arbol.
+    """
+    ofentry = {'country': None, 'lstcountries': None}
+    ofentry['country'] = ciudad
+    ofentry['lstcountries'] = lt.newList('SINGLELINKED')
+    return ofentry
+
+
 
 # Funciones para creacion de datos
 
@@ -230,6 +303,20 @@ def indexHeight(analyzer):
     Altura del arbol
     """
     return om.height(analyzer['fecha'])
+
+def citySize(analyzer):
+    """
+    Altura del arbol de ciudades
+    """
+    return om.size(analyzer['ciudad'])
+
+
+def durationSize(analyzer):
+    """
+    Altura del arbol de duraciones
+    """
+    return om.size(analyzer['duracion'])
+
 
 
 def indexSize(analyzer):
@@ -254,24 +341,119 @@ def maxKey(analyzer):
 
 def getAvistamientosByRange(analyzer, initialDate, finalDate):
     """
-    Retorna el numero de avistamientos en un rango de fechas.
+    Retorna el numero de avistamientos en un rago de fechas.
     """
     lst = om.values(analyzer['fecha'], initialDate, finalDate)
-    totcrimes = 0
+    totavistamientos = 0
     for lstdate in lt.iterator(lst):
-        totcrimes += lt.size(lstdate['lstavistamientos'])
-    return totcrimes
+        totavistamientos += lt.size(lstdate['lstavistamientos'])
+                
+    return totavistamientos
 
-def getAvistamientosByDurationRange(analyzer, min, max):
+def getAvistamientosByCity(analyzer, city):
+
+    keys = om.keySet(analyzer['ciudad'])
+    values = om.valueSet(analyzer['ciudad'])
+    pos = lt.isPresent(keys, city) 
+    lst = lt.getElement(values, pos)
+    size = lt.size(lst['lstavistamientos'])
+    
+    print("\nTotal de avistamientos en la ciudad dada: " + str(size))
+
+    if size <= 6:
+        return lst
+    else: 
+        lst1 = lt.subList(lst['lstavistamientos'], 1, 3)
+        lst2 = lt.subList(lst['lstavistamientos'], size-3, 3)
+        
+
+        for x in lt.iterator(lst1):
+            print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
+
+        for x in lt.iterator(lst2):
+            print("datetime: " + str(x['datetime']) + " city: " + str(x['city']) + " state: " + str(x['state']) + " country: " + str(x['country']) +  " shape: " + str(x['shape']))
+            
+             
+
+
+def get5bestcities(analyzer):
     """
-    Retorna el numero de avistamientos en un rango.
+    Retorna las 5 ciudades con más avistamientos
     """
-    lst = om.values(analyzer['duracion en seg'], min, max)
-    print(analyzer['duracion en seg']) 
-    tot = 0
-    for lstdate in lt.iterator(lst):
-        tot += lt.size(lstdate['lstavistamientos'])
-    return tot
+    
+
+    keys = om.keySet(analyzer['ciudad'])
+    values = om.valueSet(analyzer['ciudad'])
+    cantidad = lt.newList()
+
+    for value in lt.iterator(values):
+        if value is not None:
+            size = lt.size(value['lstavistamientos'])
+            lt.addLast(cantidad, size)
+
+    i = 0
+    while i <= 4:
+        pos = getbest(cantidad)
+        city = lt.getElement(keys, pos)
+        cant = lt.getElement(cantidad, pos)
+        print ("Ciudad: " + str(city) + " Cantidad: " + str(cant))
+        lt.deleteElement(keys, pos)
+        lt.deleteElement(cantidad, pos)
+        i += 1
+
+def get5bestdurations(analyzer):
+    """
+    Retorna las 5 duraciones más largas
+    """
+    keys = om.keySet(analyzer['duracion'])
+    values = om.valueSet(analyzer['duracion'])
+  
+    i = 0
+    while i < 4:
+
+        mejor = 0
+        value = 0
+    
+        for key in lt.iterator(keys):
+            if key is not None:
+                if float(lt.getElement(keys, key)) > mejor:
+                    mejor = float(lt.getElement(keys, key))
+                    pos = lt.isPresent(keys, lt.getElement(keys, key))
+                    value = lt.getElement(values, pos)
+        
+        print ("Duración: " + str(mejor) + " Cantidad: " + str(lt.size(value['lstavistamientos'])))
+        lt.deleteElement(keys, pos)
+        lt.deleteElement(values, pos)
+        i += 1
+
+ 
+def getbest(lista):
+
+    mejor = 0
+    pos = 0
+    print(lista)
+    for elm in lt.iterator(lista):
+        x = lt.getElement(lista, elm)
+        
+        y = lt.isPresent(lista, elm)
+        if x > mejor:
+            mejor = x
+            pos = y
+    
+    return (pos)
+    
+
+def getAvistamientosByDuration(analyzer, min, max):
+
+    values = om.values(analyzer['duracion'], max, min)
+    size = lt.size(values)
+    
+    totavistamientos = 0
+    for lstduration in lt.iterator(values):
+        totavistamientos += lt.size(lstduration['lstavistamientos'])
+    
+                
+    return totavistamientos
 
 
 # Funciones utilizadas para comparar elementos dentro de una lista
@@ -282,25 +464,12 @@ def getAvistamientosByDurationRange(analyzer, min, max):
 # Funciones de Comparacion
 # ==============================
 
+def comparedurations(duration1, duration2):
+    return (duration1 > duration2)
 
-def comparedates(date1, date2):
-    """
-    Compara dos crimenes
-    """
-    if (datetime.datetime.striptime(date1,'%Y-%m-%d') == datetime.datetime.striptime(date2,'%Y-%m-%d')):
-        return 0
-    elif (datetime.datetime.striptime(date1,'%Y-%m-%d') > datetime.datetime.striptime(date2,'%Y-%m-%d')):
-        return 1
-    else:
-        return -1
 
-def compareobjets(objet1, objet2):
-    """
-    Compara dos objetos
-    """
-    if (objet1 == objet2):
-        return 0
-    elif objet1 > objet2:
-        return 1
-    else:
-        return -1
+
+
+
+
+
